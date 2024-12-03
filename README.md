@@ -22,7 +22,7 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 
 ## ⚙️ Installation
 ### Prerequisites
-- Python 3.6 or above
+- Python (latest release recommended)
 
 ### Steps
 1. Clone or download the repository.
