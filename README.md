@@ -105,11 +105,13 @@ Implements Breadth-First Search:
   - Starts from a random cell.
   - Visits neighbors by clearing walls in between.
   - Backtracks when no unvisited neighbors remain.
+  - [RB Wiki](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Randomized_depth-first_search)
 
 ### Maze Solving
 - **Breadth-First Search**:
   - Explores all possible paths layer by layer.
   - Guarantees finding the shortest path in the maze.
+  - [BFS Wiki](https://en.wikipedia.org/wiki/Breadth-first_search)
 
 <br />
 
