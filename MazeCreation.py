@@ -30,4 +30,13 @@ class MazeCreation:
 
     def print_maze(self):
         for row in self.grid:
-            print(''.join(cell.value for cell in row))
+            # Apply ANSI color codes to start and end points
+            colored_row = []
+            for cell in row:
+                if cell.value == 'S':
+                    colored_row.append('\033[32mS\033[0m')  # Green for start
+                elif cell.value == 'E':
+                    colored_row.append('\033[31mE\033[0m')  # Red for end
+                else:
+                    colored_row.append(cell.value)
+            print(''.join(colored_row))

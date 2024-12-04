@@ -47,12 +47,18 @@ def visualize_path(maze, path):
     # Create a copy of the maze for visualization
     solution = [[cell.value for cell in row] for row in maze.grid]
     
-    # Mark the path with '.' except start and end points
+    # Mark the start point in green
+    start_x, start_y = path[0]
+    solution[start_y][start_x] = '\033[32mS\033[0m'  # Green color for start
+    
+    # Mark the end point in red
+    end_x, end_y = path[-1]
+    solution[end_y][end_x] = '\033[31mE\033[0m'  # Red color for end
+    
+    # Mark the path with '.' in purple/magenta except start and end points
     for x, y in path[1:-1]:
-        solution[y][x] = '.'
+        solution[y][x] = '\033[95m.\033[0m'  # Purple/Magenta color for the solution path
     
     # Print the solution out below original maze to highlight path
     for row in solution:
         print(''.join(row))
-
-
