@@ -46,35 +46,8 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
    - Find and display the shortest path (if possible).
 
 ### Example Interaction (note: vertical spacing in .md is hyperbolic)
-```plaintext
-Enter maze size (xs/s/m/l/xl) or width height(separated by a space)): m
-Original Maze:
-#####################
-#S#           #     #
-# # ##### # # # #####
-# # #   # # # #     #
-# # # # ### # ##### #
-# # # #   # #   #   #
-# # # ### # ### # # #
-# # # #   # #   # # #
-# ### # ### # ### ###
-#     #     #      E#
-#####################
 
-Solution:
-#####################
-#S#        ...#     #
-#.# ##### #.#.# #####
-#.# #...# #.#.#     #
-#.# #.#.###.#.##### #
-#.# #.#...#.#...#   #
-#.# #.###.#.###.# # #
-#.# #.#...#.#...# # #
-#.###.#.###.#.### ###
-#.....#.....#......E#
-#####################
-```
-
+![](assets/output-preview.png)
 <br />
 
 ## 📂 File Descriptions
@@ -118,3 +91,4 @@ Implements Breadth-First Search:
 ## ✨ Customization
 - **Maze Sizes**: Modify or add preset sizes in the `main.py` file.
 - **Maze Appearance**: Adjust cell rendering in the `MazeCreation` and `visualize_path` functions.
+- **ANSI Escape Codes**: Adjust colors of all objects within the program (e.g. walls, path, start).
