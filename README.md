@@ -3,7 +3,7 @@
 ## 📌 Project Overview
 This Python-based project generates and solves mazes using **Recursive Backtracking** (RB) for maze generation and **Breadth-First Search (BFS)** for maze solving. The maze solver visualizes the shortest path through the maze.
 
-### Key Features
+### 🌟 Key Features
 1. **Maze Generation**: Creates a maze using RB.  
 2. **Pathfinding**: Finds the shortest path using BFS.  
 3. **Interactive Size Selection**: Choose pre-defined maze sizes (`xs`, `s`, `m`, `l`, `xl`) or specifyta🔍 custom dimensions.
@@ -51,21 +51,21 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 <br />
 
 ## 📂 File Descriptions
-### `main.py`
+### `main.py`🎮
 Handles user input, initializes the maze, and orchestrates the solving and visualization process.
 
-### `MazeCreation.py`
+### `MazeCreation.py`🏗️
 Defines the `MazeCreation` class:
 - Constructs the maze grid.
 - Uses recursive backtracking to carve out paths.
 - Presets the start (`S`) and end (`E`) points.
 
-### `RB.py`
+### `RB.py`🧩
 Implements Recursive Backtracking:
 - Defines the `Cell` class representing maze components.
 - Recursive algorithm clears walls to create a maze.
 
-### `BSF.py`
+### `BSF.py`🔍
 Implements Breadth-First Search:
 - Finds the shortest path from start to end.
 - Includes a function to visualize the path.
@@ -73,14 +73,14 @@ Implements Breadth-First Search:
 <br />
 
 ## 🧠 Algorithm Details
-### Maze Generation
+### 🏗️ Maze Generation
 - **Recursive Backtracking**:
   - Starts from a random cell.
   - Visits neighbors by clearing walls in between.
   - Backtracks when no unvisited neighbors remain.
   - [RB Wiki](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Randomized_depth-first_search)
 
-### Maze Solving
+### 🔍 Maze Solving
 - **Breadth-First Search**:
   - Explores all possible paths layer by layer.
   - Guarantees finding the shortest path in the maze.
