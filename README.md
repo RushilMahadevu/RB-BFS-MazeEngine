@@ -6,7 +6,7 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 ### 🌟 Key Features
 1. **Maze Generation**: Creates a maze using RB.  
 2. **Pathfinding**: Finds the shortest path using BFS.  
-3. **Interactive Size Selection**: Choose pre-defined maze sizes (`xs`, `s`, `m`, `l`, `xl`) or specifyta🔍 custom dimensions.
+3. **Interactive Size Selection**: Choose pre-defined maze sizes (`xs`, `s`, `m`, `l`, `xl`) or specify custom dimensions.
 4. **Visualization**: Displays the maze and highlights the solution path.  
 
 #### Maze Sizes and Difficulty Levels
