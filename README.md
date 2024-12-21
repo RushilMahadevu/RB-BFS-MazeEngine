@@ -46,6 +46,7 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
    - Find and display the shortest path (if possible).
 
 ### Example Interaction (note: vertical spacing in .md is hyperbolic)
+> not updated to latest -v
 
 ![](assets/output-preview.png)
 <br />
