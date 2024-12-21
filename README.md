@@ -21,16 +21,25 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 <br />
 
 ## ⚙️ Installation
-### Prerequisites
+### 🟰 Prerequisites
 - Python (latest release recommended)
 
-### Steps
-1. Clone or download the repository.
-2. Ensure all files (`main.py`, `MazeCreation.py`, `BSF.py`, `RB.py`) are in the same directory.
-3. Run the program using:
+<br />
+
+### 🪜 Process
+
+1️⃣ Clone or download the repository.
+   ``` bash
+   git clone https://github.com/RushilMahadevu/RB-BFS-MazeEngine.git
+   ```
+2️⃣ Migrate into newly made directory.
+   ``` bash
+   cd RB-BFS-MazeEngine
+   ```
+3️⃣ Run the program using:
 
    ```bash
-   python main.py
+   python3 main.py
    ```
 
 <br />
@@ -55,6 +64,9 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 ### `main.py`🎮
 Handles user input, initializes the maze, and orchestrates the solving and visualization process.
 
+### `Size.py` 🚛
+Takes size for width and length and implements error correction from user input.
+
 ### `MazeCreation.py`🏗️
 Defines the `MazeCreation` class:
 - Constructs the maze grid.
@@ -66,7 +78,7 @@ Implements Recursive Backtracking:
 - Defines the `Cell` class representing maze components.
 - Recursive algorithm clears walls to create a maze.
 
-### `BSF.py`🔍
+### `BFS.py`🔍
 Implements Breadth-First Search:
 - Finds the shortest path from start to end.
 - Includes a function to visualize the path.
