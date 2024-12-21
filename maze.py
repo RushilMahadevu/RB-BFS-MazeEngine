@@ -1,38 +1,22 @@
+import sys
+from Size import get_size
 from MazeCreation import MazeCreation
-from BSF import bfs_maze, visualize_path
+from BFS import bfs_maze, visualize_path
+
+# Increase recursion limit to avoid RecursionError of Python :(
+sys.setrecursionlimit(10**6)
 
 def main():
-    w = 0
-    h = 0
-    maze_size = input("Enter maze size (xs/s/m/l/xl) or width height(seperated by a space)): ")
-    if maze_size.lower().startswith('xs'):
-        w = 11
-        h = 11
-    elif maze_size.lower().startswith('s'):
-        w = 11
-        h = 11
-    elif maze_size.lower().startswith('m'):
-        w = 21
-        h = 11
-    elif maze_size.lower().startswith('l'):
-        w = 31
-        h = 21
-    elif maze_size.lower().startswith('xl'):
-        w = 41
-        h = 31
-    else:
-        w, h = maze_size.split()
-        w = int(w)
-        h = int(h)
-
+    # Get maze size
+    w, h = get_size()
     maze = MazeCreation(w, h)
-    print("Original Maze:")
+    print("\n\033[33mOriginal Maze:\033[0m")
     maze.print_maze()
     
     # Find and visualize path
     path = bfs_maze(maze)
     if path:
-        print("\nSolution:")
+        print("\n\n\n\033[33mSolution:\033[0m")
         visualize_path(maze, path)
     else:
         print("\nNo path found!")
