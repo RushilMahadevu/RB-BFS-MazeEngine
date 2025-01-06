@@ -39,7 +39,7 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 3️⃣ Run the program using:
 
    ```bash
-   python3 main.py
+   python3 maze.py
    ```
 
 <br />
