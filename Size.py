@@ -6,8 +6,8 @@ def get_size():
             maze_size = input("\033[94mEnter maze size (xs/s/m/l/xl) or width height(seperated by a space)): \033[0m")
             
             if maze_size.lower().startswith('xs'):
-                w = 11
-                h = 11
+                w = 9
+                h = 9
             elif maze_size.lower().startswith('s'):
                 w = 11
                 h = 11
