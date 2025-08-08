@@ -122,6 +122,7 @@ python3 main.py --gui  # GUI interface
 python3 main.py        # CLI interface
 ```
 
+<<<<<<< HEAD
 ---
 
 ## 🚀 **Usage**
@@ -455,11 +456,7 @@ This project is open source. Feel free to use, modify, and distribute.
 ---
 
 **🎉 Enjoy exploring mazes with the Enhanced Maze Engine!**
-<br />
-
-## 📂 File Descriptions
-### `main.py`🎮
-Handles user input, initializes the maze, and orchestrates the solving and visualization process.
+Takes size for width and length and implements error correction from user input.
 
 ### `MazeCreation.py`🏗️
 Defines the `MazeCreation` class:
@@ -472,7 +469,7 @@ Implements Recursive Backtracking:
 - Defines the `Cell` class representing maze components.
 - Recursive algorithm clears walls to create a maze.
 
-### `BSF.py`🔍
+### `BFS.py`🔍
 Implements Breadth-First Search:
 - Finds the shortest path from start to end.
 - Includes a function to visualize the path.
