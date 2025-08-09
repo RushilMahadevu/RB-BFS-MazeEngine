@@ -246,10 +246,7 @@ class SafeInput:
         """Get and validate maze size from user input."""
         from visualization import ColorScheme
         
-        max_attempts = 3
-        attempt = 0
-        
-        while attempt < max_attempts:
+        while True:
             try:
                 prompt = (
                     f"{ColorScheme.BRIGHT_CYAN}Enter maze size:\n"
@@ -262,14 +259,8 @@ class SafeInput:
                 return InputValidator.validate_maze_size_input(user_input)
                 
             except ValidationError as e:
-                attempt += 1
                 ErrorHandler.handle_validation_error(e)
-                
-                if attempt < max_attempts:
-                    print(f"{ColorScheme.YELLOW}Please try again ({max_attempts - attempt} attempts remaining){ColorScheme.RESET}")
-                else:
-                    print(f"{ColorScheme.BRIGHT_RED}Maximum attempts reached. Using default size (11x11){ColorScheme.RESET}")
-                    return 11, 11
+                print(f"{ColorScheme.YELLOW}Please try again{ColorScheme.RESET}")
             except KeyboardInterrupt:
                 print(f"\n{ColorScheme.YELLOW}Operation cancelled by user{ColorScheme.RESET}")
                 raise
