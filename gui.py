@@ -1,8 +1,9 @@
 """
-Basic GUI interface for the maze system using tkinter.
+GUI interface for the maze system using pygame.
 """
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import pygame
+import sys
+import os
 from typing import Optional, Dict, Any
 import threading
 import time
@@ -14,17 +15,40 @@ from visualization import MazeExporter
 
 
 class MazeGUI:
-    """Basic GUI for maze generation and solving."""
+    """Pygame-based GUI for maze generation and solving."""
     
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("Maze Generator & Solver")
-        self.root.geometry("800x600")
+        pygame.init()
+        
+        # Screen settings
+        self.screen_width = 1200
+        self.screen_height = 800
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Maze Generator & Solver")
+        
+        # Colors
+        self.colors = {
+            'white': (255, 255, 255),
+            'black': (0, 0, 0),
+            'gray': (128, 128, 128),
+            'light_gray': (200, 200, 200),
+            'dark_gray': (64, 64, 64),
+            'green': (0, 255, 0),
+            'red': (255, 0, 0),
+            'blue': (0, 0, 255),
+            'magenta': (255, 0, 255),
+            'yellow': (255, 255, 0)
+        }
         
         # Maze data
         self.current_maze: Optional[Maze] = None
-        self.canvas_maze = None
-        self.canvas = None
+        self.show_solution = False
+        
+        # GUI state
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.generating = False
+        self.solving = False
         
         # Algorithm instances
         self.generators = {
@@ -38,328 +62,440 @@ class MazeGUI:
             "Dijkstra": DijkstraPathfinder()
         }
         
-        self.setup_ui()
+        # Control variables
+        self.maze_width = 21
+        self.maze_height = 21
+        self.current_generator = "Iterative Recursive Backtrack"
+        self.current_pathfinder = "BFS"
+        
+        # Font
+        self.font = pygame.font.Font(None, 24)
+        self.small_font = pygame.font.Font(None, 18)
+        
+        # Control panel dimensions
+        self.control_panel_width = 300
+        self.maze_area_x = self.control_panel_width + 20
+        self.maze_area_width = self.screen_width - self.maze_area_x - 20
+        self.maze_area_height = self.screen_height - 40
+        
+        # Status message
+        self.status_message = "Ready"
+        self.message_timer = 0
     
-    def setup_ui(self):
-        """Set up the user interface."""
-        # Main frame
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+    def draw_button(self, surface, x, y, width, height, text, enabled=True, pressed=False):
+        """Draw a button on the surface."""
+        color = self.colors['light_gray'] if enabled else self.colors['gray']
+        if pressed:
+            color = self.colors['dark_gray']
         
-        # Configure grid weights
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
-        main_frame.rowconfigure(1, weight=1)
+        pygame.draw.rect(surface, color, (x, y, width, height))
+        pygame.draw.rect(surface, self.colors['black'], (x, y, width, height), 2)
         
-        # Control panel
-        self.setup_control_panel(main_frame)
+        text_surface = self.font.render(text, True, self.colors['black'])
+        text_rect = text_surface.get_rect(center=(x + width//2, y + height//2))
+        surface.blit(text_surface, text_rect)
         
-        # Canvas for maze display
-        self.setup_canvas(main_frame)
-        
-        # Status bar
-        self.setup_status_bar(main_frame)
+        return pygame.Rect(x, y, width, height)
     
-    def setup_control_panel(self, parent):
-        """Set up the control panel."""
-        control_frame = ttk.LabelFrame(parent, text="Controls", padding="5")
-        control_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 10))
+    def draw_text(self, surface, text, x, y, font=None, color=None):
+        """Draw text on the surface."""
+        if font is None:
+            font = self.font
+        if color is None:
+            color = self.colors['black']
         
-        # Maze size
-        ttk.Label(control_frame, text="Maze Size:").grid(row=0, column=0, sticky=tk.W, pady=2)
+        text_surface = font.render(text, True, color)
+        surface.blit(text_surface, (x, y))
+        return text_surface.get_rect(topleft=(x, y))
+    
+    def draw_input_field(self, surface, x, y, width, height, text, selected=False):
+        """Draw an input field."""
+        color = self.colors['white'] if selected else self.colors['light_gray']
+        pygame.draw.rect(surface, color, (x, y, width, height))
+        pygame.draw.rect(surface, self.colors['black'], (x, y, width, height), 2)
         
-        size_frame = ttk.Frame(control_frame)
-        size_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=2)
+        text_surface = self.font.render(str(text), True, self.colors['black'])
+        surface.blit(text_surface, (x + 5, y + (height - text_surface.get_height())//2))
         
-        ttk.Label(size_frame, text="Width:").grid(row=0, column=0, padx=(0, 5))
-        self.width_var = tk.StringVar(value="21")
-        width_entry = ttk.Entry(size_frame, textvariable=self.width_var, width=8)
-        width_entry.grid(row=0, column=1, padx=(0, 10))
+        return pygame.Rect(x, y, width, height)
+    
+    def draw_dropdown(self, surface, x, y, width, height, options, selected_index, opened=False):
+        """Draw a dropdown menu."""
+        # Main button
+        self.draw_button(surface, x, y, width, height, options[selected_index])
         
-        ttk.Label(size_frame, text="Height:").grid(row=0, column=2, padx=(0, 5))
-        self.height_var = tk.StringVar(value="21")
-        height_entry = ttk.Entry(size_frame, textvariable=self.height_var, width=8)
-        height_entry.grid(row=0, column=3)
+        # Arrow indicator
+        arrow_x = x + width - 20
+        arrow_y = y + height//2
+        pygame.draw.polygon(surface, self.colors['black'], [
+            (arrow_x, arrow_y - 5),
+            (arrow_x + 10, arrow_y - 5),
+            (arrow_x + 5, arrow_y + 5)
+        ])
+        
+        rects = [pygame.Rect(x, y, width, height)]
+        
+        # Dropdown options if opened
+        if opened:
+            for i, option in enumerate(options):
+                option_y = y + height + i * height
+                color = self.colors['yellow'] if i == selected_index else self.colors['white']
+                pygame.draw.rect(surface, color, (x, option_y, width, height))
+                pygame.draw.rect(surface, self.colors['black'], (x, option_y, width, height), 1)
+                
+                text_surface = self.font.render(option, True, self.colors['black'])
+                surface.blit(text_surface, (x + 5, option_y + (height - text_surface.get_height())//2))
+                rects.append(pygame.Rect(x, option_y, width, height))
+        
+        return rects
+    
+    def draw_control_panel(self):
+        """Draw the control panel."""
+        # Background
+        pygame.draw.rect(self.screen, self.colors['light_gray'], 
+                        (10, 10, self.control_panel_width, self.screen_height - 20))
+        pygame.draw.rect(self.screen, self.colors['black'], 
+                        (10, 10, self.control_panel_width, self.screen_height - 20), 2)
+        
+        y_offset = 30
+        
+        # Title
+        self.draw_text(self.screen, "Maze Controls", 20, y_offset, color=self.colors['black'])
+        y_offset += 40
+        
+        # Maze size controls
+        self.draw_text(self.screen, "Maze Size:", 20, y_offset)
+        y_offset += 30
+        
+        # Width input
+        self.draw_text(self.screen, f"Width: {self.maze_width}", 20, y_offset)
+        y_offset += 30
+        
+        # Height input
+        self.draw_text(self.screen, f"Height: {self.maze_height}", 20, y_offset)
+        y_offset += 40
         
         # Preset buttons
-        preset_frame = ttk.Frame(control_frame)
-        preset_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
-        
-        presets = [("XS (9x9)", "9", "9"), ("S (11x11)", "11", "11"), 
-                  ("M (21x11)", "21", "11"), ("L (31x21)", "31", "21")]
+        preset_buttons = []
+        presets = [("XS (9x9)", 9, 9), ("S (11x11)", 11, 11), 
+                  ("M (21x11)", 21, 11), ("L (31x21)", 31, 21)]
         
         for i, (label, w, h) in enumerate(presets):
-            btn = ttk.Button(preset_frame, text=label, 
-                           command=lambda w=w, h=h: self.set_size(w, h))
-            btn.grid(row=0, column=i, padx=2)
+            button_x = 20 + (i % 2) * 130
+            button_y = y_offset + (i // 2) * 35
+            rect = self.draw_button(self.screen, button_x, button_y, 120, 30, label)
+            preset_buttons.append((rect, w, h))
+        
+        y_offset += 80
         
         # Algorithm selection
-        ttk.Label(control_frame, text="Generator:").grid(row=2, column=0, sticky=tk.W, pady=(10, 2))
-        self.generator_var = tk.StringVar(value="Iterative Recursive Backtrack")
-        generator_combo = ttk.Combobox(control_frame, textvariable=self.generator_var,
-                                     values=list(self.generators.keys()), state="readonly")
-        generator_combo.grid(row=2, column=1, sticky=(tk.W, tk.E), pady=(10, 2))
+        self.draw_text(self.screen, "Generator:", 20, y_offset)
+        y_offset += 25
         
-        ttk.Label(control_frame, text="Pathfinder:").grid(row=3, column=0, sticky=tk.W, pady=2)
-        self.pathfinder_var = tk.StringVar(value="BFS")
-        pathfinder_combo = ttk.Combobox(control_frame, textvariable=self.pathfinder_var,
-                                      values=list(self.pathfinders.keys()), state="readonly")
-        pathfinder_combo.grid(row=3, column=1, sticky=(tk.W, tk.E), pady=2)
+        generator_options = list(self.generators.keys())
+        generator_index = generator_options.index(self.current_generator)
+        generator_rects = self.draw_dropdown(self.screen, 20, y_offset, 260, 30, 
+                                           generator_options, generator_index, 
+                                           getattr(self, 'generator_dropdown_open', False))
+        y_offset += 50
         
-        # Buttons
-        button_frame = ttk.Frame(control_frame)
-        button_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 0))
+        self.draw_text(self.screen, "Pathfinder:", 20, y_offset)
+        y_offset += 25
         
-        self.generate_btn = ttk.Button(button_frame, text="Generate Maze", 
-                                     command=self.generate_maze)
-        self.generate_btn.grid(row=0, column=0, padx=(0, 5))
+        pathfinder_options = list(self.pathfinders.keys())
+        pathfinder_index = pathfinder_options.index(self.current_pathfinder)
+        pathfinder_rects = self.draw_dropdown(self.screen, 20, y_offset, 260, 30, 
+                                            pathfinder_options, pathfinder_index,
+                                            getattr(self, 'pathfinder_dropdown_open', False))
+        y_offset += 60
         
-        self.solve_btn = ttk.Button(button_frame, text="Solve Maze", 
-                                  command=self.solve_maze, state="disabled")
-        self.solve_btn.grid(row=0, column=1, padx=(0, 5))
+        # Action buttons
+        generate_rect = self.draw_button(self.screen, 20, y_offset, 120, 40, 
+                                       "Generate", not self.generating)
+        solve_rect = self.draw_button(self.screen, 150, y_offset, 120, 40, 
+                                    "Solve", self.current_maze is not None and not self.solving)
+        y_offset += 50
         
-        self.clear_btn = ttk.Button(button_frame, text="Clear Solution", 
-                                  command=self.clear_solution, state="disabled")
-        self.clear_btn.grid(row=0, column=2)
+        clear_rect = self.draw_button(self.screen, 20, y_offset, 120, 40, 
+                                    "Clear Solution", self.current_maze is not None and self.show_solution)
+        export_rect = self.draw_button(self.screen, 150, y_offset, 120, 40, 
+                                     "Export", self.current_maze is not None)
         
-        # Export button
-        self.export_btn = ttk.Button(control_frame, text="Export Maze", 
-                                   command=self.export_maze, state="disabled")
-        self.export_btn.grid(row=5, column=0, columnspan=2, pady=(10, 0))
-        
-        # Configure column weights
-        control_frame.columnconfigure(1, weight=1)
+        return {
+            'preset_buttons': preset_buttons,
+            'generator_rects': generator_rects,
+            'pathfinder_rects': pathfinder_rects,
+            'generate': generate_rect,
+            'solve': solve_rect,
+            'clear': clear_rect,
+            'export': export_rect
+        }
     
-    def setup_canvas(self, parent):
-        """Set up the canvas for maze display."""
-        canvas_frame = ttk.LabelFrame(parent, text="Maze", padding="5")
-        canvas_frame.grid(row=0, column=1, rowspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
-        # Canvas with scrollbars
-        canvas_container = ttk.Frame(canvas_frame)
-        canvas_container.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
-        self.canvas = tk.Canvas(canvas_container, bg="white", width=400, height=400)
-        
-        v_scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=self.canvas.yview)
-        h_scrollbar = ttk.Scrollbar(canvas_container, orient="horizontal", command=self.canvas.xview)
-        
-        self.canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-        
-        self.canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        v_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-        h_scrollbar.grid(row=1, column=0, sticky=(tk.W, tk.E))
-        
-        canvas_container.columnconfigure(0, weight=1)
-        canvas_container.rowconfigure(0, weight=1)
-        canvas_frame.columnconfigure(0, weight=1)
-        canvas_frame.rowconfigure(0, weight=1)
-    
-    def setup_status_bar(self, parent):
-        """Set up the status bar."""
-        self.status_var = tk.StringVar(value="Ready")
-        status_bar = ttk.Label(parent, textvariable=self.status_var, relief="sunken")
-        status_bar.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 0))
-    
-    def set_size(self, width: str, height: str):
-        """Set maze size from preset."""
-        self.width_var.set(width)
-        self.height_var.set(height)
-    
-    def generate_maze(self):
-        """Generate a new maze."""
-        try:
-            # Validate input
-            width = int(self.width_var.get())
-            height = int(self.height_var.get())
-            
-            if width < 3 or height < 3:
-                messagebox.showerror("Error", "Maze dimensions must be at least 3x3")
-                return
-            
-            if width > 100 or height > 100:
-                if not messagebox.askyesno("Warning", 
-                    f"Large maze ({width}x{height}) may take time to generate. Continue?"):
-                    return
-            
-            # Update status
-            self.status_var.set("Generating maze...")
-            self.generate_btn.config(state="disabled")
-            self.root.update()
-            
-            # Generate maze in separate thread to prevent GUI freezing
-            def generate_thread():
-                try:
-                    generator = self.generators[self.generator_var.get()]
-                    pathfinder = self.pathfinders[self.pathfinder_var.get()]
-                    
-                    self.current_maze = Maze(width, height, generator, pathfinder)
-                    
-                    # Update GUI in main thread
-                    self.root.after(0, self.on_maze_generated)
-                    
-                except Exception as e:
-                    self.root.after(0, lambda: self.on_generation_error(str(e)))
-            
-            threading.Thread(target=generate_thread, daemon=True).start()
-            
-        except ValueError:
-            messagebox.showerror("Error", "Please enter valid numbers for width and height")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to generate maze: {str(e)}")
-            self.generate_btn.config(state="normal")
-    
-    def on_maze_generated(self):
-        """Called when maze generation is complete."""
-        self.display_maze()
-        self.status_var.set(f"Maze generated ({self.current_maze.width}x{self.current_maze.height})")
-        self.generate_btn.config(state="normal")
-        self.solve_btn.config(state="normal")
-        self.export_btn.config(state="normal")
-    
-    def on_generation_error(self, error_msg: str):
-        """Called when maze generation fails."""
-        messagebox.showerror("Generation Error", error_msg)
-        self.status_var.set("Generation failed")
-        self.generate_btn.config(state="normal")
-    
-    def solve_maze(self):
-        """Solve the current maze."""
+    def draw_maze(self):
+        """Draw the current maze."""
         if not self.current_maze:
+            # Draw placeholder text
+            text = "Generate a maze to begin!"
+            text_surface = self.font.render(text, True, self.colors['gray'])
+            text_rect = text_surface.get_rect(center=(
+                self.maze_area_x + self.maze_area_width // 2,
+                self.screen_height // 2
+            ))
+            self.screen.blit(text_surface, text_rect)
             return
         
-        try:
-            self.status_var.set("Solving maze...")
-            self.solve_btn.config(state="disabled")
-            self.root.update()
-            
-            def solve_thread():
-                try:
-                    path = self.current_maze.solve()
-                    self.root.after(0, lambda: self.on_maze_solved(path))
-                except Exception as e:
-                    self.root.after(0, lambda: self.on_solving_error(str(e)))
-            
-            threading.Thread(target=solve_thread, daemon=True).start()
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to solve maze: {str(e)}")
-            self.solve_btn.config(state="normal")
-    
-    def on_maze_solved(self, path):
-        """Called when maze solving is complete."""
-        if path:
-            self.display_maze(show_solution=True)
-            self.status_var.set(f"Solution found! Path length: {len(path)} steps")
-            self.clear_btn.config(state="normal")
-        else:
-            self.status_var.set("No solution found")
-            messagebox.showinfo("No Solution", "No path found from start to end")
-        
-        self.solve_btn.config(state="normal")
-    
-    def on_solving_error(self, error_msg: str):
-        """Called when maze solving fails."""
-        messagebox.showerror("Solving Error", error_msg)
-        self.status_var.set("Solving failed")
-        self.solve_btn.config(state="normal")
-    
-    def clear_solution(self):
-        """Clear the solution path display."""
-        if self.current_maze:
-            self.display_maze(show_solution=False)
-            self.status_var.set("Solution cleared")
-            self.clear_btn.config(state="disabled")
-    
-    def display_maze(self, show_solution: bool = False):
-        """Display the maze on the canvas."""
-        if not self.current_maze:
-            return
-        
-        self.canvas.delete("all")
-        
-        # Calculate cell size based on maze dimensions
-        canvas_width = 400
-        canvas_height = 400
-        cell_width = max(1, canvas_width // self.current_maze.width)
-        cell_height = max(1, canvas_height // self.current_maze.height)
+        # Calculate cell size
+        cell_width = self.maze_area_width // self.current_maze.width
+        cell_height = self.maze_area_height // self.current_maze.height
         cell_size = min(cell_width, cell_height, 20)  # Max 20 pixels per cell
         
-        # Colors
-        colors = {
-            CellType.WALL: "#000000",
-            CellType.EMPTY: "#FFFFFF",
-            CellType.START: "#00FF00",
-            CellType.END: "#FF0000",
-            CellType.PATH: "#FF00FF"
+        # Center the maze
+        maze_pixel_width = self.current_maze.width * cell_size
+        maze_pixel_height = self.current_maze.height * cell_size
+        start_x = self.maze_area_x + (self.maze_area_width - maze_pixel_width) // 2
+        start_y = 20 + (self.maze_area_height - maze_pixel_height) // 2
+        
+        # Color mapping
+        cell_colors = {
+            CellType.WALL: self.colors['black'],
+            CellType.EMPTY: self.colors['white'],
+            CellType.START: self.colors['green'],
+            CellType.END: self.colors['red'],
+            CellType.PATH: self.colors['magenta']
         }
         
-        maze_width = self.current_maze.width * cell_size
-        maze_height = self.current_maze.height * cell_size
-        
-        # Update canvas scroll region
-        self.canvas.config(scrollregion=(0, 0, maze_width, maze_height))
-        
-        # Draw maze
+        # Get solution positions if showing solution
         solution_positions = set()
-        if show_solution and self.current_maze.solution_path:
+        if self.show_solution and self.current_maze.solution_path:
             solution_positions = set(self.current_maze.solution_path)
         
+        # Draw maze cells
         for y, row in enumerate(self.current_maze.grid):
             for x, cell in enumerate(row):
-                x1 = x * cell_size
-                y1 = y * cell_size
-                x2 = x1 + cell_size
-                y2 = y1 + cell_size
+                x1 = start_x + x * cell_size
+                y1 = start_y + y * cell_size
                 
                 pos = Position(x, y)
                 
                 # Determine color
                 if pos in solution_positions and cell.cell_type not in [CellType.START, CellType.END]:
-                    color = colors[CellType.PATH]
+                    color = cell_colors[CellType.PATH]
                 else:
-                    color = colors[cell.cell_type]
+                    color = cell_colors[cell.cell_type]
                 
-                self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="#888888")
+                pygame.draw.rect(self.screen, color, (x1, y1, cell_size, cell_size))
+                pygame.draw.rect(self.screen, self.colors['gray'], (x1, y1, cell_size, cell_size), 1)
+    
+    def set_size(self, width: int, height: int):
+        """Set maze size from preset."""
+        self.maze_width = width
+        self.maze_height = height
+    
+    def show_message(self, message: str, duration: int = 3000):
+        """Show a temporary status message."""
+        self.status_message = message
+        self.message_timer = pygame.time.get_ticks() + duration
+    def generate_maze(self):
+        """Generate a new maze."""
+        try:
+            # Validate input
+            width = self.maze_width
+            height = self.maze_height
+            
+            if width < 3 or height < 3:
+                self.show_message("Error: Maze dimensions must be at least 3x3")
+                return
+            
+            if width > 100 or height > 100:
+                self.show_message(f"Warning: Large maze ({width}x{height}) may take time to generate")
+            
+            # Update status
+            self.status_message = "Generating maze..."
+            self.generating = True
+            
+            # Generate maze in separate thread to prevent GUI freezing
+            def generate_thread():
+                try:
+                    generator = self.generators[self.current_generator]
+                    pathfinder = self.pathfinders[self.current_pathfinder]
+                    
+                    self.current_maze = Maze(width, height, generator, pathfinder)
+                    self.generating = False
+                    self.show_solution = False
+                    self.status_message = f"Maze generated ({self.current_maze.width}x{self.current_maze.height})"
+                    
+                except Exception as e:
+                    self.generating = False
+                    self.show_message(f"Generation Error: {str(e)}")
+            
+            threading.Thread(target=generate_thread, daemon=True).start()
+            
+        except Exception as e:
+            self.show_message(f"Failed to generate maze: {str(e)}")
+            self.generating = False
+    
+    def solve_maze(self):
+        """Solve the current maze."""
+        if not self.current_maze or self.solving:
+            return
+        
+        try:
+            self.status_message = "Solving maze..."
+            self.solving = True
+            
+            def solve_thread():
+                try:
+                    path = self.current_maze.solve()
+                    self.solving = False
+                    if path:
+                        self.show_solution = True
+                        self.status_message = f"Solution found! Path length: {len(path)} steps"
+                    else:
+                        self.status_message = "No solution found"
+                        
+                except Exception as e:
+                    self.solving = False
+                    self.show_message(f"Solving Error: {str(e)}")
+            
+            threading.Thread(target=solve_thread, daemon=True).start()
+            
+        except Exception as e:
+            self.show_message(f"Failed to solve maze: {str(e)}")
+            self.solving = False
+    
+    def clear_solution(self):
+        """Clear the solution path display."""
+        if self.current_maze:
+            self.show_solution = False
+            self.status_message = "Solution cleared"
     
     def export_maze(self):
         """Export the current maze."""
         if not self.current_maze:
             return
         
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("JSON files", "*.json"), ("All files", "*.*")]
-        )
+        # Simple file export (without dialog for now)
+        try:
+            filename = f"maze_{self.current_maze.width}x{self.current_maze.height}.txt"
+            MazeExporter.to_text_file(self.current_maze, filename, self.show_solution)
+            self.show_message(f"Maze exported to {filename}")
+            
+        except Exception as e:
+            self.show_message(f"Export Error: {str(e)}")
+    
+    def handle_events(self):
+        """Handle pygame events."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    self.handle_mouse_click(event.pos)
+            
+            elif event.type == pygame.KEYDOWN:
+                self.handle_keypress(event.key)
+    
+    def handle_mouse_click(self, pos):
+        """Handle mouse clicks on UI elements."""
+        # Get current control elements
+        controls = self.draw_control_panel()
         
-        if filename:
-            try:
-                if filename.endswith('.json'):
-                    MazeExporter.to_json(self.current_maze, filename)
-                else:
-                    include_solution = messagebox.askyesno("Export Options", 
-                        "Include solution path in export?")
-                    MazeExporter.to_text_file(self.current_maze, filename, include_solution)
-                
-                messagebox.showinfo("Export Complete", f"Maze exported to {filename}")
-                
-            except Exception as e:
-                messagebox.showerror("Export Error", f"Failed to export maze: {str(e)}")
+        # Check preset buttons
+        for rect, w, h in controls['preset_buttons']:
+            if rect.collidepoint(pos):
+                self.set_size(w, h)
+                return
+        
+        # Check generator dropdown
+        if hasattr(self, 'generator_dropdown_open') and self.generator_dropdown_open:
+            generator_options = list(self.generators.keys())
+            for i, rect in enumerate(controls['generator_rects'][1:], 0):
+                if rect.collidepoint(pos):
+                    self.current_generator = generator_options[i]
+                    self.generator_dropdown_open = False
+                    return
+        else:
+            if controls['generator_rects'][0].collidepoint(pos):
+                self.generator_dropdown_open = not getattr(self, 'generator_dropdown_open', False)
+                self.pathfinder_dropdown_open = False
+                return
+        
+        # Check pathfinder dropdown
+        if hasattr(self, 'pathfinder_dropdown_open') and self.pathfinder_dropdown_open:
+            pathfinder_options = list(self.pathfinders.keys())
+            for i, rect in enumerate(controls['pathfinder_rects'][1:], 0):
+                if rect.collidepoint(pos):
+                    self.current_pathfinder = pathfinder_options[i]
+                    self.pathfinder_dropdown_open = False
+                    return
+        else:
+            if controls['pathfinder_rects'][0].collidepoint(pos):
+                self.pathfinder_dropdown_open = not getattr(self, 'pathfinder_dropdown_open', False)
+                self.generator_dropdown_open = False
+                return
+        
+        # Check action buttons
+        if controls['generate'].collidepoint(pos) and not self.generating:
+            self.generate_maze()
+        elif controls['solve'].collidepoint(pos) and self.current_maze and not self.solving:
+            self.solve_maze()
+        elif controls['clear'].collidepoint(pos) and self.current_maze and self.show_solution:
+            self.clear_solution()
+        elif controls['export'].collidepoint(pos) and self.current_maze:
+            self.export_maze()
+        
+        # Close dropdowns if clicking elsewhere
+        if not any(rect.collidepoint(pos) for rect in controls['generator_rects'] + controls['pathfinder_rects']):
+            self.generator_dropdown_open = False
+            self.pathfinder_dropdown_open = False
+    
+    def handle_keypress(self, key):
+        """Handle keyboard input."""
+        if key == pygame.K_ESCAPE:
+            self.running = False
+        elif key == pygame.K_g and not self.generating:
+            self.generate_maze()
+        elif key == pygame.K_s and self.current_maze and not self.solving:
+            self.solve_maze()
+        elif key == pygame.K_c and self.current_maze and self.show_solution:
+            self.clear_solution()
+        elif key == pygame.K_e and self.current_maze:
+            self.export_maze()
     
     def run(self):
         """Start the GUI application."""
         try:
-            # Add some example text
-            self.canvas.create_text(200, 200, text="Generate a maze to begin!", 
-                                  font=("Arial", 14), fill="gray")
-            
-            self.root.mainloop()
-            
+            while self.running:
+                self.handle_events()
+                
+                # Clear screen
+                self.screen.fill(self.colors['white'])
+                
+                # Draw UI elements
+                self.draw_control_panel()
+                self.draw_maze()
+                
+                # Draw status bar
+                current_time = pygame.time.get_ticks()
+                if current_time < self.message_timer:
+                    status_color = self.colors['red'] if 'Error' in self.status_message else self.colors['black']
+                else:
+                    status_color = self.colors['black']
+                
+                self.draw_text(self.screen, f"Status: {self.status_message}", 
+                             20, self.screen_height - 30, color=status_color)
+                
+                # Update display
+                pygame.display.flip()
+                self.clock.tick(60)  # 60 FPS
+                
         except KeyboardInterrupt:
             print("\nApplication closed by user")
         except Exception as e:
-            messagebox.showerror("Application Error", f"Unexpected error: {str(e)}")
+            print(f"Application Error: {str(e)}")
+        finally:
+            pygame.quit()
 
 
 def main():
@@ -369,7 +505,7 @@ def main():
         app.run()
     except ImportError as e:
         print(f"GUI Error: {e}")
-        print("GUI requires tkinter. Please install it or use the command-line interface.")
+        print("GUI requires pygame. Please install it with: pip install pygame")
     except Exception as e:
         print(f"Failed to start GUI: {e}")
 

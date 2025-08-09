@@ -24,7 +24,7 @@ python3 main.py
 ```
 
 ### **GUI Interface**
-```bash
+```bash´
 python3 main.py --gui
 # Visual interface with point-and-click controls
 ```ectural improvements and new features:
@@ -57,7 +57,7 @@ python3 main.py --gui
 - **Dead-End Filler** - Alternative solving approach
 
 #### 🖥️ **GUI Interface**
-- **Tkinter-based GUI** with visual maze display
+- **Pygame-based GUI** with visual maze display
 - **Interactive Controls** for all settings
 - **Real-time Generation** with progress feedback
 - **Export Integration** directly from GUI
@@ -98,7 +98,7 @@ This Python-based project generates and solves mazes using **Recursive Backtrack
 
 ### **Prerequisites**
 - Python 3.7+ (Python 3.9+ recommended)
-- tkinter (usually included with Python, needed for GUI)
+- pygame (for GUI interface)
 
 ### **Quick Setup**
 ```bash
@@ -180,7 +180,7 @@ Enhanced Maze Engine/
 │
 ├── User Interface:
 │   ├── input_validation.py    # Input handling and validation
-│   ├── gui.py                 # Tkinter GUI interface
+│   ├── gui.py                 # Pygame GUI interface
 │   └── config.py             # Configuration management
 │
 ├── Documentation & Setup:
@@ -371,7 +371,7 @@ This will verify:
 - ✅ Maze generation algorithms
 - ✅ Pathfinding algorithms
 - ✅ Visualization system
-- ✅ GUI availability (tkinter)
+- ✅ GUI availability (pygame)
 
 ---
 

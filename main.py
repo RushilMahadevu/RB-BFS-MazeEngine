@@ -82,8 +82,8 @@ class MazeApplication:
             app = MazeGUI()
             app.run()
         except ImportError:
-            print("❌ GUI not available. tkinter is required for GUI mode.")
-            print("💡 Install tkinter or use CLI mode instead.")
+            print("❌ GUI not available. pygame is required for GUI mode.")
+            print("💡 Install pygame with 'pip install pygame' or use CLI mode instead.")
             return False
         except Exception as e:
             ErrorHandler.handle_general_error(e)
