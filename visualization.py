@@ -56,27 +56,27 @@ class MazeTheme:
 
 # Predefined themes
 CLASSIC_THEME = MazeTheme("Classic", {
-    CellType.WALL: ColorScheme.WHITE,
+    CellType.WALL: ColorScheme.BLUE,
     CellType.EMPTY: ColorScheme.RESET,
-    CellType.START: ColorScheme.GREEN,
-    CellType.END: ColorScheme.RED,
-    CellType.PATH: ColorScheme.BRIGHT_MAGENTA
+    CellType.START: ColorScheme.BRIGHT_GREEN,
+    CellType.END: ColorScheme.BRIGHT_RED,
+    CellType.PATH: ColorScheme.BRIGHT_YELLOW
 })
 
 DARK_THEME = MazeTheme("Dark", {
     CellType.WALL: ColorScheme.BRIGHT_BLACK,
     CellType.EMPTY: ColorScheme.RESET,
-    CellType.START: ColorScheme.BRIGHT_GREEN,
-    CellType.END: ColorScheme.BRIGHT_RED,
-    CellType.PATH: ColorScheme.BRIGHT_CYAN
+    CellType.START: ColorScheme.BRIGHT_CYAN,
+    CellType.END: ColorScheme.BRIGHT_MAGENTA,
+    CellType.PATH: ColorScheme.BRIGHT_WHITE
 })
 
 NEON_THEME = MazeTheme("Neon", {
-    CellType.WALL: ColorScheme.MAGENTA,
+    CellType.WALL: ColorScheme.BRIGHT_MAGENTA,
     CellType.EMPTY: ColorScheme.RESET,
-    CellType.START: ColorScheme.BRIGHT_GREEN,
-    CellType.END: ColorScheme.BRIGHT_RED,
-    CellType.PATH: ColorScheme.BRIGHT_YELLOW
+    CellType.START: ColorScheme.BRIGHT_CYAN,
+    CellType.END: ColorScheme.BRIGHT_YELLOW,
+    CellType.PATH: ColorScheme.BRIGHT_GREEN
 })
 
 
@@ -105,17 +105,19 @@ class MazeVisualizer:
             self._print_grid(maze.grid)
     
     def _print_grid(self, grid: List[List[Cell]], highlight_path: Optional[List[Position]] = None) -> None:
-        """Print the maze grid."""
+        """Print the maze grid with proper aspect ratio."""
         for row in grid:
             line = ""
             for cell in row:
                 char = self._get_cell_char(cell)
                 color = self.theme.get_color(cell.cell_type)
-                line += f"{color}{char}{ColorScheme.RESET}"
+                # Use double-width characters to improve aspect ratio
+                display_char = char + char if cell.cell_type == CellType.WALL else char + ' '
+                line += f"{color}{display_char}{ColorScheme.RESET}"
             print(line)
     
     def _print_grid_with_path(self, grid: List[List[Cell]], path: List[Position]) -> None:
-        """Print the maze grid with solution path highlighted."""
+        """Print the maze grid with solution path highlighted and proper aspect ratio."""
         # Create a set of path positions for quick lookup
         path_positions = set(path)
         
@@ -128,12 +130,15 @@ class MazeVisualizer:
                     # Highlight path
                     color = self.theme.get_color(CellType.PATH)
                     char = self.path_char
+                    display_char = char + ' '
                 else:
                     # Normal cell
                     color = self.theme.get_color(cell.cell_type)
                     char = self._get_cell_char(cell)
+                    # Use double-width characters for walls to improve aspect ratio
+                    display_char = char + char if cell.cell_type == CellType.WALL else char + ' '
                 
-                line += f"{color}{char}{ColorScheme.RESET}"
+                line += f"{color}{display_char}{ColorScheme.RESET}"
             print(line)
     
     def _get_cell_char(self, cell: Cell) -> str:

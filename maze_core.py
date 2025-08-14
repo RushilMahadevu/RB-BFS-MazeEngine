@@ -10,11 +10,11 @@ from collections import deque
 
 class CellType(Enum):
     """Enumeration for different cell types in the maze."""
-    WALL = '#'
-    EMPTY = ' '
+    WALL = '█'
+    EMPTY = '·'
     START = 'S'
     END = 'E'
-    PATH = '.'
+    PATH = '●'
 
 
 class Position:

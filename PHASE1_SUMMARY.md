@@ -43,7 +43,7 @@
 ```
 Enhanced Maze Engine/
 ├── Core System:
-│   ├── main_enhanced.py         # Enhanced main application
+│   ├── main.py                 # Enhanced main application
 │   ├── maze_core.py            # Core classes and interfaces
 │   ├── generators.py           # Maze generation algorithms
 │   ├── pathfinders.py         # Pathfinding algorithms
@@ -72,27 +72,27 @@ Enhanced Maze Engine/
 ### **Command Line (Direct)**
 ```bash
 # Generate specific maze
-python3 main_enhanced.py --size 21 21 --generator iterative --pathfinder astar
+python3 main.py --size 21 21 --generator iterative --pathfinder astar
 
 # Use themes
-python3 main_enhanced.py --size 15 15 --theme dark
+python3 main.py --size 15 15 --theme dark
 
 # Export maze
-python3 main_enhanced.py --size 25 25 --export my_maze.txt
+python3 main.py --size 25 25 --export my_maze.txt
 
 # JSON export
-python3 main_enhanced.py --size 21 21 --export maze_data.json
+python3 main.py --size 21 21 --export maze_data.json
 ```
 
 ### **Interactive CLI**
 ```bash
-python3 main_enhanced.py
+python3 main.py
 # Provides full menu system with guided options
 ```
 
 ### **GUI Interface**
 ```bash
-python3 main_enhanced.py --gui
+python3 main.py --gui
 # Visual interface with point-and-click controls
 ```
 
