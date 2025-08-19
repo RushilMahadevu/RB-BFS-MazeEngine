@@ -1,6 +1,6 @@
 """
 Enhanced main application for the maze system.
-Supports both CLI and GUI modes with        print(f"{ColorScheme.BRIGHT_CYAN}🧭 Enhanced Maze Engine v2.0{ColorScheme.RESET}")
+Supports both CLI and GUI modes with        print(f"{ColorScheme.BRIGHT_CYAN}🏛️ Maze Architecture Framework{ColorScheme.RESET}")
         print(f"{ColorScheme.CYAN}{'=' * 50}{ColorScheme.RESET}")
         print("🔧 Improvements in this version:")
         print("  • Fixed recursion limit issues")
@@ -95,7 +95,7 @@ class MazeApplication:
         """Print welcome message and information."""
         from visualization import ColorScheme
         
-        print(f"\n{ColorScheme.BRIGHT_CYAN}🧭 Enhanced Maze Engine v2.0{ColorScheme.RESET}")
+        print(f"\n{ColorScheme.BRIGHT_CYAN}🏛️ Maze Architecture Framework{ColorScheme.RESET}")
     
     def main_menu(self):
         """Display and handle the main menu."""
@@ -105,7 +105,7 @@ class MazeApplication:
         maze_status = f"{ColorScheme.BRIGHT_GREEN}✅ Loaded{ColorScheme.RESET}" if self.current_maze else f"{ColorScheme.BRIGHT_RED}❌ None{ColorScheme.RESET}"
         
         print(f"\n{ColorScheme.BRIGHT_CYAN}╔{'═' * 48}╗{ColorScheme.RESET}")
-        print(f"{ColorScheme.BRIGHT_CYAN}║{ColorScheme.BRIGHT_YELLOW}           🎮 MAZE ENGINE - MAIN MENU          {ColorScheme.BRIGHT_CYAN}║{ColorScheme.RESET}")
+        print(f"{ColorScheme.BRIGHT_CYAN}║{ColorScheme.BRIGHT_YELLOW}           ⚓ ENGINE - MAIN MENU          {ColorScheme.BRIGHT_CYAN}║{ColorScheme.RESET}")
         print(f"{ColorScheme.BRIGHT_CYAN}╠{'═' * 48}╣{ColorScheme.RESET}")
         print(f"{ColorScheme.BRIGHT_CYAN}║{ColorScheme.RESET} Current Maze: {maze_status}                    {ColorScheme.BRIGHT_CYAN}║{ColorScheme.RESET}")
         print(f"{ColorScheme.BRIGHT_CYAN}╚{'═' * 48}╝{ColorScheme.RESET}")
